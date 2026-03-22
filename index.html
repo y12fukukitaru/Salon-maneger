@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💄 Beauty Salon Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --pink: #E91E8C;
+  --pink-light: #FF6BBF;
+  --pink-pale: #FFF0F8;
+  --gold: #FFD700;
+  --gold-dark: #C8A200;
+  --bg: #FFF9FC;
+  --card: #FFFFFF;
+  --text: #2D2D2D;
+  --text-sub: #888;
+  --border: #F0D0E8;
+  --green: #4CAF50;
+  --red: #F44336;
+  --blue: #2196F3;
+  --shadow: 0 4px 20px rgba(233,30,140,0.10);
+  --radius: 16px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* Header */
+.app-header {
+  background: linear-gradient(135deg, #E91E8C 0%, #FF6BBF 50%, #FFD700 100%);
+  color: white; padding: 16px 20px 12px;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 20px rgba(233,30,140,0.3);
+}
+.app-header h1 { font-size: 20px; font-weight: 900; letter-spacing: 1px; }
+.app-header p { font-size: 11px; opacity: 0.85; margin-top: 2px; }
+
+/* Nav */
+.nav-tabs {
+  display: flex; overflow-x: auto; background: white;
+  border-bottom: 2px solid var(--border);
+  position: sticky; top: 68px; z-index: 99;
+  scrollbar-width: none;
+}
+.nav-tabs::-webkit-scrollbar { display: none; }
+.nav-tab {
+  flex: 0 0 auto; padding: 12px 16px; font-size: 12px; font-weight: 700;
+  color: var(--text-sub); border-bottom: 3px solid transparent;
+  cursor: pointer; white-space: nowrap; transition: all 0.2s;
+  background: none; border-top: none; border-left: none; border-right: none;
+}
+.nav-tab.active { color: var(--pink); border-bottom-color: var(--pink); }
+.nav-tab:hover { color: var(--pink); background: var(--pink-pale); }
+
+/* Main */
+.main { padding: 16px; max-width: 800px; margin: 0 auto; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Cards */
+.card {
+  background: var(--card); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 20px; margin-bottom: 16px;
+  border: 1px solid var(--border);
+}
+.card-title {
+  font-size: 14px; font-weight: 700; color: var(--pink);
+  margin-bottom: 16px; display: flex; align-items: center; gap: 6px;
+}
+
+/* KPI Grid */
+.kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
+.kpi-card {
+  background: white; border-radius: 14px; padding: 16px;
+  box-shadow: var(--shadow); border: 1px solid var(--border);
+  position: relative; overflow: hidden;
+}
+.kpi-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+}
+.kpi-card.pink::before { background: linear-gradient(90deg, var(--pink), var(--pink-light)); }
+.kpi-card.gold::before { background: linear-gradient(90deg, var(--gold-dark), var(--gold)); }
+.kpi-card.green::before { background: linear-gradient(90deg, #2E7D32, var(--green)); }
+.kpi-card.blue::before { background: linear-gradient(90deg, #1565C0, var(--blue)); }
+.kpi-label { font-size: 11px; color: var(--text-sub); font-weight: 500; }
+.kpi-value { font-size: 24px; font-weight: 900; margin: 4px 0; }
+.kpi-card.pink .kpi-value { color: var(--pink); }
+.kpi-card.gold .kpi-value { color: var(--gold-dark); }
+.kpi-card.green .kpi-value { color: var(--green); }
+.kpi-card.blue .kpi-value { color: var(--blue); }
+.kpi-sub { font-size: 11px; color: var(--text-sub); }
+.kpi-badge {
+  display: inline-block; font-size: 10px; padding: 2px 6px;
+  border-radius: 20px; font-weight: 700; margin-left: 4px;
+}
+.badge-up { background: #E8F5E9; color: #2E7D32; }
+.badge-down { background: #FFEBEE; color: #C62828; }
+
+/* Forms */
+.form-group { margin-bottom: 14px; }
+.form-label { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 6px; display: block; }
+.form-control {
+  width: 100%; padding: 12px 14px; border: 2px solid var(--border);
+  border-radius: 10px; font-size: 14px; font-family: inherit;
+  transition: border-color 0.2s; background: white; color: var(--text);
+}
+.form-control:focus { outline: none; border-color: var(--pink); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* Toggle Buttons */
+.toggle-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.toggle-btn {
+  padding: 10px 18px; border: 2px solid var(--border); border-radius: 30px;
+  font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+  background: white; color: var(--text-sub);
+}
+.toggle-btn.active { border-color: var(--pink); background: var(--pink); color: white; }
+
+/* Counter */
+.counter-group { display: flex; align-items: center; gap: 12px; }
+.counter-btn {
+  width: 40px; height: 40px; border-radius: 50%;
+  border: 2px solid var(--pink); background: white; color: var(--pink);
+  font-size: 20px; font-weight: 700; cursor: pointer; display: flex;
+  align-items: center; justify-content: center; transition: all 0.2s;
+}
+.counter-btn:hover { background: var(--pink); color: white; }
+.counter-value { font-size: 28px; font-weight: 900; color: var(--text); min-width: 50px; text-align: center; }
+
+/* Menu Grid */
+.menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.menu-item { background: var(--pink-pale); border-radius: 10px; padding: 12px; }
+.menu-item label { font-size: 11px; font-weight: 700; color: var(--pink); display: block; margin-bottom: 4px; }
+.menu-item input { width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 14px; font-family: inherit; background: white; }
+
+/* Buttons */
+.btn {
+  padding: 14px 24px; border-radius: 30px; font-size: 14px; font-weight: 700;
+  cursor: pointer; border: none; transition: all 0.2s; font-family: inherit;
+}
+.btn-primary { background: linear-gradient(135deg, var(--pink), var(--pink-light)); color: white; width: 100%; }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(233,30,140,0.4); }
+.btn-secondary { background: white; border: 2px solid var(--pink); color: var(--pink); }
+.btn-sm { padding: 8px 14px; font-size: 12px; }
+.btn-gold { background: linear-gradient(135deg, var(--gold-dark), var(--gold)); color: white; }
+.btn-danger { background: #FFEBEE; color: var(--red); border: none; }
+
+/* Table */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { background: var(--pink-pale); color: var(--pink); font-weight: 700; padding: 10px 8px; text-align: left; white-space: nowrap; }
+td { padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--pink-pale); }
+
+/* Progress Bar */
+.progress-bar { height: 8px; background: var(--border); border-radius: 10px; overflow: hidden; margin-top: 6px; }
+.progress-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, var(--pink), var(--pink-light)); transition: width 0.5s; }
+
+/* Chart Container */
+.chart-container { position: relative; height: 220px; margin-top: 8px; }
+
+/* Insight Box */
+.insight-box {
+  background: linear-gradient(135deg, #FFF0F8, #FFF8E0);
+  border: 1px solid var(--gold); border-radius: 12px; padding: 14px;
+  margin-bottom: 12px; display: flex; align-items: flex-start; gap: 10px;
+}
+.insight-icon { font-size: 20px; flex-shrink: 0; }
+.insight-text { font-size: 13px; line-height: 1.6; color: var(--text); }
+.insight-text strong { color: var(--pink); }
+
+/* Sim Section */
+.sim-slider { width: 100%; appearance: none; height: 6px; border-radius: 3px; background: var(--border); outline: none; }
+.sim-slider::-webkit-slider-thumb { appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--pink); cursor: pointer; box-shadow: 0 2px 8px rgba(233,30,140,0.4); }
+.sim-result { background: linear-gradient(135deg, var(--pink), var(--pink-light)); color: white; border-radius: 14px; padding: 20px; text-align: center; margin-top: 16px; }
+.sim-result .big-num { font-size: 36px; font-weight: 900; }
+.sim-result .label { font-size: 13px; opacity: 0.9; }
+
+/* Staff Cards */
+.staff-card { border: 2px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+.staff-name { font-size: 16px; font-weight: 900; color: var(--pink); margin-bottom: 12px; }
+
+/* Month tabs */
+.month-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+.month-tab { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 2px solid var(--border); background: white; cursor: pointer; color: var(--text-sub); }
+.month-tab.active { background: var(--pink); border-color: var(--pink); color: white; }
+
+/* Report tabs */
+.report-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.report-tab { flex: 1; padding: 10px; text-align: center; border-radius: 10px; font-size: 13px; font-weight: 700; border: 2px solid var(--border); background: white; cursor: pointer; color: var(--text-sub); }
+.report-tab.active { background: var(--pink); border-color: var(--pink); color: white; }
+
+/* Alert */
+.alert { padding: 12px 16px; border-radius: 10px; font-size: 13px; margin-bottom: 12px; }
+.alert-success { background: #E8F5E9; color: #2E7D32; border: 1px solid #A5D6A7; }
+.alert-warning { background: #FFF8E1; color: #F57F17; border: 1px solid #FFE082; }
+.alert-danger { background: #FFEBEE; color: #C62828; border: 1px solid #FFCDD2; }
+
+/* Cashflow Table */
+.cf-table th { font-size: 11px; padding: 8px 6px; }
+.cf-table td { font-size: 12px; padding: 8px 6px; }
+.cf-table .positive { color: var(--green); font-weight: 700; }
+.cf-table .negative { color: var(--red); font-weight: 700; }
+
+/* Daily log item */
+.log-item { border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+.log-date { font-size: 12px; color: var(--text-sub); }
+.log-main { font-weight: 700; font-size: 14px; }
+.log-detail { font-size: 12px; color: var(--text-sub); }
+.log-actions { display: flex; gap: 6px; }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  background: var(--pink); color: white; padding: 12px 24px; border-radius: 30px;
+  font-size: 14px; font-weight: 700; z-index: 9999; opacity: 0; transition: opacity 0.3s;
+  box-shadow: 0 4px 20px rgba(233,30,140,0.4);
+}
+.toast.show { opacity: 1; }
+
+/* Responsive */
+@media (max-width: 480px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .form-row { grid-template-columns: 1fr; }
+  .menu-grid { grid-template-columns: repeat(2, 1fr); }
+  .main { padding: 12px; }
+}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <h1>💄 Beauty Salon Manager</h1>
+  <p>美容院 財務・スタッフ管理システム</p>
+</div>
+
+<div class="nav-tabs">
+  <button class="nav-tab active" onclick="switchTab('dashboard')">🏠 ダッシュボード</button>
+  <button class="nav-tab" onclick="switchTab('daily')">📝 日報入力</button>
+  <button class="nav-tab" onclick="switchTab('cashflow')">💰 資金繰り</button>
+  <button class="nav-tab" onclick="switchTab('report')">📊 レポート</button>
+  <button class="nav-tab" onclick="switchTab('simulation')">✨ シミュレーション</button>
+  <button class="nav-tab" onclick="switchTab('staff')">👥 スタッフ</button>
+  <button class="nav-tab" onclick="switchTab('settings')">⚙️ 設定</button>
+</div>
+
+<div class="main">
+  <div id="toast" class="toast"></div>
+
+  <!-- ===== DASHBOARD ===== -->
+  <div id="tab-dashboard" class="tab-content active">
+    <div id="dash-insight" class="insight-box"></div>
+    <div class="kpi-grid">
+      <div class="kpi-card pink">
+        <div class="kpi-label">今月の売上</div>
+        <div class="kpi-value" id="dash-sales">¥0</div>
+        <div class="kpi-sub" id="dash-sales-sub">-</div>
+      </div>
+      <div class="kpi-card gold">
+        <div class="kpi-label">客単価（平均）</div>
+        <div class="kpi-value" id="dash-unit">¥0</div>
+        <div class="kpi-sub" id="dash-unit-sub">-</div>
+      </div>
+      <div class="kpi-card green">
+        <div class="kpi-label">今月の利益</div>
+        <div class="kpi-value" id="dash-profit">¥0</div>
+        <div class="kpi-sub" id="dash-profit-sub">-</div>
+      </div>
+      <div class="kpi-card blue">
+        <div class="kpi-label">今月の来客数</div>
+        <div class="kpi-value" id="dash-customers">0</div>
+        <div class="kpi-sub" id="dash-cust-sub">-</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🎯 目標達成率</div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;">
+        <span id="dash-target-label">売上目標</span>
+        <span id="dash-target-pct">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="dash-progress" style="width:0%"></div></div>
+      <div style="font-size:11px;color:var(--text-sub);margin-top:6px;" id="dash-target-detail">-</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📈 月別売上推移（直近6ヶ月）</div>
+      <div class="chart-container"><canvas id="chart-monthly-sales"></canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🍩 メニュー別売上構成（今月）</div>
+      <div class="chart-container" style="height:200px;"><canvas id="chart-menu-pie"></canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📋 最近の日報</div>
+      <div id="recent-logs"></div>
+    </div>
+  </div>
+
+  <!-- ===== DAILY REPORT ===== -->
+  <div id="tab-daily" class="tab-content">
+    <div class="card">
+      <div class="card-title">📝 日報入力</div>
+
+      <div class="form-group">
+        <label class="form-label">📅 日付</label>
+        <input type="date" id="d-date" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">👤 担当スタッフ</label>
+        <div class="toggle-group" id="d-staff-toggle">
+          <button class="toggle-btn active" onclick="selectStaff(this,'スタッフA')">スタッフA</button>
+          <button class="toggle-btn" onclick="selectStaff(this,'スタッフB')">スタッフB</button>
+          <button class="toggle-btn" onclick="selectStaff(this,'両名')">両名</button>
+        </div>
+        <input type="hidden" id="d-staff" value="スタッフA">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">👥 来客数</label>
+        <div class="counter-group">
+          <button class="counter-btn" onclick="changeCount(-1)">−</button>
+          <div class="counter-value" id="d-count-display">0</div>
+          <button class="counter-btn" onclick="changeCount(1)">＋</button>
+          <input type="hidden" id="d-customers" value="0">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">💴 売上合計（円）</label>
+          <input type="number" id="d-sales" class="form-control" placeholder="例: 45000" oninput="calcUnitPrice()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">💳 うちカード払い</label>
+          <input type="number" id="d-card" class="form-control" placeholder="例: 20000">
+        </div>
+      </div>
+
+      <div class="alert alert-success" id="unit-price-display" style="display:none;"></div>
+
+      <div class="form-group">
+        <label class="form-label">💇 メニュー別件数</label>
+        <div class="menu-grid">
+          <div class="menu-item"><label>✂️ カット</label><input type="number" id="m-cut" placeholder="0" min="0"></div>
+          <div class="menu-item"><label>🎨 カラー</label><input type="number" id="m-color" placeholder="0" min="0"></div>
+          <div class="menu-item"><label>💫 パーマ</label><input type="number" id="m-perm" placeholder="0" min="0"></div>
+          <div class="menu-item"><label>✨ トリートメント</label><input type="number" id="m-treat" placeholder="0" min="0"></div>
+          <div class="menu-item"><label>💆 ヘッドスパ</label><input type="number" id="m-spa" placeholder="0" min="0"></div>
+          <div class="menu-item"><label>📦 その他</label><input type="number" id="m-other" placeholder="0" min="0"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">📝 備考・特記事項</label>
+        <textarea id="d-memo" class="form-control" rows="2" placeholder="クレーム、特別施術、気づきなど..."></textarea>
+      </div>
+
+      <button class="btn btn-primary" onclick="saveDailyReport()">✅ 日報を保存する</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="justify-content:space-between;">
+        <span>📋 日報一覧</span>
+        <button class="btn btn-sm btn-gold" onclick="exportCSV()">⬇️ CSV</button>
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <select id="log-month-filter" class="form-control" onchange="renderLogList()">
+          <option value="">すべての月</option>
+        </select>
+      </div>
+      <div id="log-list"></div>
+    </div>
+  </div>
+
+  <!-- ===== CASHFLOW ===== -->
+  <div id="tab-cashflow" class="tab-content">
+    <div class="card">
+      <div class="card-title">💰 月次収支入力</div>
+      <div class="form-group">
+        <label class="form-label">📅 対象月</label>
+        <input type="month" id="cf-month" class="form-control">
+      </div>
+      <div class="form-group">
+        <label class="form-label">📥 その他収入（補助金・融資等）</label>
+        <input type="number" id="cf-other-income" class="form-control" placeholder="0">
+      </div>
+      <div class="card-title" style="margin-top:8px;font-size:13px;">🔴 固定費</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">家賃</label><input type="number" id="cf-rent" class="form-control" placeholder="0"></div>
+        <div class="form-group"><label class="form-label">人件費（合計）</label><input type="number" id="cf-labor" class="form-control" placeholder="0"></div>
+        <div class="form-group"><label class="form-label">光熱費</label><input type="number" id="cf-util" class="form-control" placeholder="0"></div>
+        <div class="form-group"><label class="form-label">通信費</label><input type="number" id="cf-comm" class="form-control" placeholder="0"></div>
+        <div class="form-group"><label class="form-label">保険・その他固定</label><input type="number" id="cf-ins" class="form-control" placeholder="0"></div>
+        <div class="form-group"><label class="form-label">ローン返済</label><input type="number" id="cf-loan" class="form-control" placeholder="0"></div>
+      </div>
+      <div class="card-title" style="margin-top:4px;font-size:13px;">🟡 変動費</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">材料費・薬剤費</label><input type="number" id="cf-material" class="form-control" placeholder="0"></div>
+        <div class="form-group"><label class="form-label">広告・集客費</label><input type="number" id="cf-ads" class="form-control" placeholder="0"></div>
+        <div class="form-group"><label class="form-label">消耗品費</label><input type="number" id="cf-supplies" class="form-control" placeholder="0"></div>
+        <div class="form-group"><label class="form-label">その他変動費</label><input type="number" id="cf-misc" class="form-control" placeholder="0"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">💳 前月末残高</label>
+        <input type="number" id="cf-prev-balance" class="form-control" placeholder="0">
+      </div>
+      <button class="btn btn-primary" onclick="saveCashflow()">💾 保存する</button>
+    </div>
+
+    <div class="card" id="cf-summary-card" style="display:none;">
+      <div class="card-title">📊 今月の収支サマリー</div>
+      <div id="cf-summary"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📅 6ヶ月キャッシュフロー予測</div>
+      <div class="table-wrap">
+        <table class="cf-table" id="cf-forecast-table">
+          <thead><tr><th>月</th><th>売上</th><th>支出合計</th><th>収支</th><th>月末残高</th></tr></thead>
+          <tbody id="cf-forecast-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== REPORT ===== -->
+  <div id="tab-report" class="tab-content">
+    <div class="report-tabs">
+      <button class="report-tab active" onclick="switchReport('weekly',this)">週次</button>
+      <button class="report-tab" onclick="switchReport('monthly',this)">月次</button>
+      <button class="report-tab" onclick="switchReport('yearly',this)">年次</button>
+    </div>
+
+    <div id="report-weekly">
+      <div class="form-group">
+        <label class="form-label">📅 週を選択</label>
+        <input type="week" id="r-week" class="form-control">
+      </div>
+      <button class="btn btn-secondary btn-sm" style="margin-bottom:12px;" onclick="renderWeeklyReport()">集計する</button>
+      <div id="weekly-result"></div>
+    </div>
+
+    <div id="report-monthly" style="display:none;">
+      <div class="form-group">
+        <label class="form-label">📅 月を選択</label>
+        <input type="month" id="r-month" class="form-control">
+      </div>
+      <button class="btn btn-secondary btn-sm" style="margin-bottom:12px;" onclick="renderMonthlyReport()">集計する</button>
+      <div id="monthly-result"></div>
+    </div>
+
+    <div id="report-yearly" style="display:none;">
+      <div class="form-group">
+        <label class="form-label">📅 年を選択</label>
+        <input type="number" id="r-year" class="form-control" min="2020" max="2030">
+      </div>
+      <button class="btn btn-secondary btn-sm" style="margin-bottom:12px;" onclick="renderYearlyReport()">集計する</button>
+      <div id="yearly-result"></div>
+    </div>
+  </div>
+
+  <!-- ===== SIMULATION ===== -->
+  <div id="tab-simulation" class="tab-content">
+    <div class="insight-box">
+      <div class="insight-icon">💡</div>
+      <div class="insight-text">客単価を少し上げるだけで、経営への影響は大きくなります。スライダーを動かして、<strong>年間の売上・利益の変化</strong>をシミュレーションしてみましょう。</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⚙️ 現在の状況</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">月間来客数（人）</label>
+          <input type="number" id="sim-customers" class="form-control" value="80" oninput="runSimulation()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">現在の客単価（円）</label>
+          <input type="number" id="sim-unit-price" class="form-control" value="5000" oninput="runSimulation()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">月間固定費合計（円）</label>
+          <input type="number" id="sim-fixed-cost" class="form-control" value="400000" oninput="runSimulation()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">変動費率（%）</label>
+          <input type="number" id="sim-var-rate" class="form-control" value="15" min="0" max="80" oninput="runSimulation()">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🎯 客単価アップ目標</div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+        <span style="font-size:13px;">現在</span>
+        <span style="font-size:16px;font-weight:900;color:var(--pink);" id="sim-target-label">+¥0</span>
+        <span style="font-size:13px;">+¥5,000</span>
+      </div>
+      <input type="range" class="sim-slider" id="sim-slider" min="0" max="5000" step="100" value="0" oninput="runSimulation()">
+    </div>
+
+    <div class="sim-result" id="sim-result">
+      <div class="label">スライダーを動かしてください</div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="card-title">📊 シミュレーショングラフ</div>
+      <div class="chart-container" style="height:250px;"><canvas id="chart-sim"></canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">💡 損益分岐点分析</div>
+      <div id="bep-analysis"></div>
+    </div>
+  </div>
+
+  <!-- ===== STAFF ===== -->
+  <div id="tab-staff" class="tab-content">
+    <div class="form-group">
+      <label class="form-label">📅 対象月</label>
+      <input type="month" id="s-month" class="form-control" onchange="renderStaff()">
+    </div>
+
+    <div id="staff-cards"></div>
+
+    <div class="card">
+      <div class="card-title">📊 スタッフ別売上比較</div>
+      <div class="chart-container"><canvas id="chart-staff"></canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🎯 月次目標設定</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">スタッフA 売上目標（円）</label>
+          <input type="number" id="target-a" class="form-control" placeholder="例: 300000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">スタッフB 売上目標（円）</label>
+          <input type="number" id="target-b" class="form-control" placeholder="例: 300000">
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="saveStaffTargets()">目標を保存</button>
+    </div>
+  </div>
+
+  <!-- ===== SETTINGS ===== -->
+  <div id="tab-settings" class="tab-content">
+    <div class="card">
+      <div class="card-title">⚙️ 基本設定</div>
+      <div class="form-group">
+        <label class="form-label">🏪 サロン名</label>
+        <input type="text" id="set-salon-name" class="form-control" placeholder="Beauty Salon Manager">
+      </div>
+      <div class="form-group">
+        <label class="form-label">🎯 月間売上目標（円）</label>
+        <input type="number" id="set-target-sales" class="form-control" placeholder="例: 800000">
+      </div>
+      <div class="form-group">
+        <label class="form-label">👤 スタッフA 名前</label>
+        <input type="text" id="set-staff-a" class="form-control" placeholder="スタッフA">
+      </div>
+      <div class="form-group">
+        <label class="form-label">👤 スタッフB 名前</label>
+        <input type="text" id="set-staff-b" class="form-control" placeholder="スタッフB">
+      </div>
+      <button class="btn btn-primary" onclick="saveSettings()">設定を保存</button>
+    </div>
+    <div class="card">
+      <div class="card-title">🗑️ データ管理</div>
+      <button class="btn btn-secondary" onclick="exportAllData()" style="margin-bottom:10px;width:100%;">📤 全データをJSONでエクスポート</button>
+      <button class="btn" style="background:#FFEBEE;color:var(--red);width:100%;" onclick="clearAllData()">⚠️ 全データを削除（初期化）</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================================================
+// DATA LAYER
+// ===================================================
+const DB = {
+  get(key, def) { try { return JSON.parse(localStorage.getItem(key)) ?? def; } catch { return def; } },
+  set(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+};
+
+function getData() { return DB.get('salon_reports', []); }
+function setData(d) { DB.set('salon_reports', d); }
+function getCashflows() { return DB.get('salon_cashflows', {}); }
+function setCashflows(d) { DB.set('salon_cashflows', d); }
+function getSettings() {
+  return DB.get('salon_settings', { salonName:'Beauty Salon Manager', targetSales:800000, staffA:'スタッフA', staffB:'スタッフB', targetA:300000, targetB:300000 });
+}
+function setSettings(d) { DB.set('salon_settings', d); }
+
+// ===================================================
+// SAMPLE DATA INIT
+// ===================================================
+function initSampleData() {
+  if (DB.get('salon_initialized', false)) return;
+  const today = new Date();
+  const reports = [];
+  const menus = ['cut','color','perm','treat','spa','other'];
+  for (let i = 89; i >= 0; i--) {
+    const d = new Date(today); d.setDate(d.getDate() - i);
+    const dow = d.getDay();
+    if (dow === 0) continue; // 日曜休み
+    const staff = dow % 2 === 0 ? 'スタッフA' : 'スタッフB';
+    const customers = Math.floor(Math.random() * 5) + 4;
+    const unitPrice = 4500 + Math.floor(Math.random() * 2000);
+    const sales = customers * unitPrice;
+    const cut = Math.floor(customers * 0.4);
+    const color = Math.floor(customers * 0.3);
+    const perm = Math.floor(customers * 0.1);
+    const treat = Math.floor(customers * 0.1);
+    const spa = Math.floor(customers * 0.05);
+    const other = customers - cut - color - perm - treat - spa;
+    reports.push({
+      id: Date.now() + i,
+      date: d.toISOString().split('T')[0],
+      staff,
+      customers,
+      sales,
+      card: Math.floor(sales * 0.4),
+      menuCut: cut, menuColor: color, menuPerm: perm, menuTreat: treat, menuSpa: spa, menuOther: Math.max(0,other),
+      memo: ''
+    });
+  }
+  setData(reports);
+
+  // Sample cashflow
+  const cf = {};
+  for (let m = 0; m < 3; m++) {
+    const d2 = new Date(today); d2.setMonth(d2.getMonth() - m);
+    const ym = `${d2.getFullYear()}-${String(d2.getMonth()+1).padStart(2,'0')}`;
+    cf[ym] = { otherIncome:0, rent:120000, labor:300000, util:25000, comm:8000, ins:15000, loan:50000, material:60000, ads:20000, supplies:10000, misc:5000, prevBalance: 500000 - m*50000 };
+  }
+  setCashflows(cf);
+  DB.set('salon_initialized', true);
+}
+
+// ===================================================
+// UTILS
+// ===================================================
+function fmt(n) { return '¥' + Math.round(n).toLocaleString(); }
+function fmtNum(n) { return Math.round(n).toLocaleString(); }
+function today() { return new Date().toISOString().split('T')[0]; }
+function currentYM() { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+function getMonthReports(ym) { return getData().filter(r => r.date.startsWith(ym)); }
+function showToast(msg) {
+  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+function getPrevYM(ym) { const d=new Date(ym+'-01'); d.setMonth(d.getMonth()-1); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+
+// ===================================================
+// NAVIGATION
+// ===================================================
+function switchTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (tab === 'dashboard') renderDashboard();
+  if (tab === 'daily') renderLogList();
+  if (tab === 'cashflow') { const el = document.getElementById('cf-month'); if(!el.value) el.value = currentYM(); loadCashflow(); }
+  if (tab === 'report') { const ry=document.getElementById('r-year'); if(!ry.value) ry.value=new Date().getFullYear(); const rm=document.getElementById('r-month'); if(!rm.value) rm.value=currentYM(); }
+  if (tab === 'simulation') { loadSimSettings(); runSimulation(); }
+  if (tab === 'staff') { const sm=document.getElementById('s-month'); if(!sm.value) sm.value=currentYM(); loadStaffTargets(); renderStaff(); }
+  if (tab === 'settings') loadSettingsForm();
+}
+
+// ===================================================
+// DASHBOARD
+// ===================================================
+let chartMonthlySales = null, chartMenuPie = null;
+function renderDashboard() {
+  const ym = currentYM(); const pym = getPrevYM(ym);
+  const reports = getMonthReports(ym); const prevReports = getMonthReports(pym);
+  const s = getSettings();
+  const sales = reports.reduce((a,r) => a + r.sales, 0);
+  const prevSales = prevReports.reduce((a,r) => a + r.sales, 0);
+  const customers = reports.reduce((a,r) => a + r.customers, 0);
+  const prevCust = prevReports.reduce((a,r) => a + r.customers, 0);
+  const unit = customers ? Math.round(sales/customers) : 0;
+  const prevUnit = prevCust ? Math.round(prevSales/prevCust) : 0;
+  const cf = getCashflows(); const cfm = cf[ym] || {};
+  const totalExp = (cfm.rent||0)+(cfm.labor||0)+(cfm.util||0)+(cfm.comm||0)+(cfm.ins||0)+(cfm.loan||0)+(cfm.material||0)+(cfm.ads||0)+(cfm.supplies||0)+(cfm.misc||0);
+  const profit = sales - totalExp;
+
+  document.getElementById('dash-sales').textContent = fmt(sales);
+  const salesDiff = prevSales ? Math.round((sales-prevSales)/prevSales*100) : 0;
+  document.getElementById('dash-sales-sub').innerHTML = `前月比 <span class="kpi-badge ${salesDiff>=0?'badge-up':'badge-down'}">${salesDiff>=0?'▲':'▼'}${Math.abs(salesDiff)}%</span>`;
+  document.getElementById('dash-unit').textContent = fmt(unit);
+  const unitDiff = prevUnit ? Math.round((unit-prevUnit)/prevUnit*100) : 0;
+  document.getElementById('dash-unit-sub').innerHTML = `前月比 <span class="kpi-badge ${unitDiff>=0?'badge-up':'badge-down'}">${unitDiff>=0?'▲':'▼'}${Math.abs(unitDiff)}%</span>`;
+  document.getElementById('dash-profit').textContent = fmt(profit);
+  document.getElementById('dash-profit-sub').textContent = totalExp ? `経費 ${fmt(totalExp)}` : '資金繰りを入力してください';
+  document.getElementById('dash-customers').textContent = fmtNum(customers);
+  document.getElementById('dash-cust-sub').innerHTML = `前月比 <span class="kpi-badge ${customers>=prevCust?'badge-up':'badge-down'}">${customers>=prevCust?'▲':'▼'}${Math.abs(customers-prevCust)}人</span>`;
+
+  const targetSales = s.targetSales || 800000;
+  const pct = Math.min(100, Math.round(sales/targetSales*100));
+  document.getElementById('dash-target-label').textContent = `売上目標 ${fmt(targetSales)}`;
+  document.getElementById('dash-target-pct').textContent = pct + '%';
+  document.getElementById('dash-progress').style.width = pct + '%';
+  document.getElementById('dash-target-detail').textContent = `残り ${fmt(Math.max(0,targetSales-sales))} 達成まで`;
+
+  // Insight
+  let insightHtml = '';
+  if (profit < 0) insightHtml = `<div class="insight-icon">🚨</div><div class="insight-text"><strong>警告：今月は赤字です。</strong>売上 ${fmt(sales)} に対し経費 ${fmt(totalExp)} で ${fmt(Math.abs(profit))} の赤字です。資金繰りを確認してください。</div>`;
+  else if (unit < 5000) insightHtml = `<div class="insight-icon">💡</div><div class="insight-text">現在の客単価は <strong>${fmt(unit)}</strong> です。客単価を500円上げると月間で <strong>${fmt(customers*500)}</strong> の増収が見込めます。</div>`;
+  else insightHtml = `<div class="insight-icon">✨</div><div class="insight-text">今月の売上は <strong>${fmt(sales)}</strong>。達成率 <strong>${pct}%</strong>。好調ですね！引き続き客単価 ${fmt(unit)} を維持しましょう。</div>`;
+  document.getElementById('dash-insight').innerHTML = insightHtml;
+
+  // Monthly sales chart (6 months)
+  const months = []; const salesArr = []; const profitArr = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(); d.setMonth(d.getMonth()-i);
+    const mym = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    months.push(`${d.getMonth()+1}月`);
+    const mrs = getMonthReports(mym);
+    const ms = mrs.reduce((a,r)=>a+r.sales,0);
+    salesArr.push(ms);
+    const mcf = cf[mym] || {};
+    const mexp = (mcf.rent||0)+(mcf.labor||0)+(mcf.util||0)+(mcf.comm||0)+(mcf.ins||0)+(mcf.loan||0)+(mcf.material||0)+(mcf.ads||0)+(mcf.supplies||0)+(mcf.misc||0);
+    profitArr.push(ms - mexp);
+  }
+  if (chartMonthlySales) chartMonthlySales.destroy();
+  chartMonthlySales = new Chart(document.getElementById('chart-monthly-sales'), {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets: [
+        { label: '売上', data: salesArr, backgroundColor: 'rgba(233,30,140,0.7)', borderRadius: 8 },
+        { label: '利益', data: profitArr, backgroundColor: 'rgba(255,215,0,0.7)', borderRadius: 8 }
+      ]
+    },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'top'}}, scales:{y:{ticks:{callback:v=>'¥'+(v/10000).toFixed(0)+'万'}}} }
+  });
+
+  // Menu Pie
+  const mData = { cut:0, color:0, perm:0, treat:0, spa:0, other:0 };
+  reports.forEach(r => { mData.cut+=r.menuCut||0; mData.color+=r.menuColor||0; mData.perm+=r.menuPerm||0; mData.treat+=r.menuTreat||0; mData.spa+=r.menuSpa||0; mData.other+=r.menuOther||0; });
+  const mTotal = Object.values(mData).reduce((a,b)=>a+b,0);
+  if (chartMenuPie) chartMenuPie.destroy();
+  if (mTotal > 0) {
+    chartMenuPie = new Chart(document.getElementById('chart-menu-pie'), {
+      type: 'doughnut',
+      data: {
+        labels: ['カット','カラー','パーマ','トリートメント','ヘッドスパ','その他'],
+        datasets: [{ data: [mData.cut,mData.color,mData.perm,mData.treat,mData.spa,mData.other], backgroundColor: ['#E91E8C','#FF6BBF','#FFD700','#4CAF50','#2196F3','#9C27B0'], borderWidth: 2 }]
+      },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'right'}} }
+    });
+  }
+
+  // Recent logs
+  const recent = getData().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
+  document.getElementById('recent-logs').innerHTML = recent.map(r =>
+    `<div class="log-item"><div><div class="log-date">${r.date}　${r.staff}</div><div class="log-main">${fmt(r.sales)} / ${r.customers}名</div></div><div class="log-detail">客単価 ${r.customers?fmt(r.sales/r.customers):'-'}</div></div>`
+  ).join('') || '<div style="color:var(--text-sub);text-align:center;padding:20px;">日報データがありません</div>';
+}
+
+// ===================================================
+// DAILY REPORT
+// ===================================================
+let selectedStaff = 'スタッフA';
+function selectStaff(btn, name) {
+  document.querySelectorAll('#d-staff-toggle .toggle-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const s = getSettings();
+  const staffName = name === 'スタッフA' ? s.staffA : name === 'スタッフB' ? s.staffB : '両名';
+  selectedStaff = staffName;
+  document.getElementById('d-staff').value = staffName;
+}
+function changeCount(delta) {
+  const cur = parseInt(document.getElementById('d-customers').value)||0;
+  const newVal = Math.max(0, cur + delta);
+  document.getElementById('d-customers').value = newVal;
+  document.getElementById('d-count-display').textContent = newVal;
+  calcUnitPrice();
+}
+function calcUnitPrice() {
+  const sales = parseInt(document.getElementById('d-sales').value)||0;
+  const customers = parseInt(document.getElementById('d-customers').value)||0;
+  const el = document.getElementById('unit-price-display');
+  if (sales > 0 && customers > 0) {
+    el.style.display = 'block';
+    el.textContent = `✅ 客単価: ${fmt(sales/customers)}`;
+  } else el.style.display = 'none';
+}
+function saveDailyReport() {
+  const date = document.getElementById('d-date').value;
+  const sales = parseInt(document.getElementById('d-sales').value)||0;
+  const customers = parseInt(document.getElementById('d-customers').value)||0;
+  if (!date) { showToast('⚠️ 日付を入力してください'); return; }
+  if (sales <= 0) { showToast('⚠️ 売上を入力してください'); return; }
+  const report = {
+    id: Date.now(), date,
+    staff: document.getElementById('d-staff').value || selectedStaff,
+    customers, sales,
+    card: parseInt(document.getElementById('d-card').value)||0,
+    menuCut: parseInt(document.getElementById('m-cut').value)||0,
+    menuColor: parseInt(document.getElementById('m-color').value)||0,
+    menuPerm: parseInt(document.getElementById('m-perm').value)||0,
+    menuTreat: parseInt(document.getElementById('m-treat').value)||0,
+    menuSpa: parseInt(document.getElementById('m-spa').value)||0,
+    menuOther: parseInt(document.getElementById('m-other').value)||0,
+    memo: document.getElementById('d-memo').value
+  };
+  const data = getData(); data.push(report); setData(data);
+  showToast('✅ 日報を保存しました！');
+  // Reset
+  document.getElementById('d-date').value = today();
+  ['d-sales','d-card','m-cut','m-color','m-perm','m-treat','m-spa','m-other'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('d-customers').value = 0; document.getElementById('d-count-display').textContent = 0;
+  document.getElementById('d-memo').value = ''; document.getElementById('unit-price-display').style.display='none';
+  renderLogList();
+}
+function renderLogList() {
+  const filter = document.getElementById('log-month-filter').value;
+  let data = getData().sort((a,b) => b.date.localeCompare(a.date));
+  if (filter) data = data.filter(r => r.date.startsWith(filter));
+  // Populate month filter
+  const months = [...new Set(getData().map(r => r.date.slice(0,7)))].sort().reverse();
+  const sel = document.getElementById('log-month-filter');
+  const curVal = sel.value;
+  sel.innerHTML = '<option value="">すべての月</option>' + months.map(m => `<option value="${m}" ${m===curVal?'selected':''}>${m}</option>`).join('');
+  document.getElementById('log-list').innerHTML = data.length ? data.map(r =>
+    `<div class="log-item">
+      <div>
+        <div class="log-date">${r.date}　<strong>${r.staff}</strong></div>
+        <div class="log-main">${fmt(r.sales)} / ${r.customers}名</div>
+        <div class="log-detail">客単価 ${r.customers?fmt(r.sales/r.customers):'-'}　カード ${fmt(r.card)}</div>
+        ${r.memo?`<div class="log-detail" style="color:#888;">📝 ${r.memo}</div>`:''}
+      </div>
+      <div class="log-actions">
+        <button class="btn btn-sm btn-danger" onclick="deleteReport(${r.id})">🗑️</button>
+      </div>
+    </div>`
+  ).join('') : '<div style="color:var(--text-sub);text-align:center;padding:20px;">日報データがありません</div>';
+}
+function deleteReport(id) {
+  if (!confirm('この日報を削除しますか？')) return;
+  setData(getData().filter(r => r.id !== id));
+  renderLogList(); showToast('削除しました');
+}
+function exportCSV() {
+  const data = getData().sort((a,b)=>a.date.localeCompare(b.date));
+  const header = ['日付','スタッフ','来客数','売上','カード','客単価','カット','カラー','パーマ','トリートメント','ヘッドスパ','その他','備考'];
+  const rows = data.map(r => [r.date,r.staff,r.customers,r.sales,r.card,r.customers?Math.round(r.sales/r.customers):0,r.menuCut||0,r.menuColor||0,r.menuPerm||0,r.menuTreat||0,r.menuSpa||0,r.menuOther||0,r.memo||'']);
+  const csv = '\uFEFF' + [header,...rows].map(r=>r.join(',')).join('\n');
+  const a = document.createElement('a'); a.href = 'data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download = `salon_report_${today()}.csv`; a.click(); showToast('CSVをダウンロードしました');
+}
+
+// ===================================================
+// CASHFLOW
+// ===================================================
+function loadCashflow() {
+  const ym = document.getElementById('cf-month').value || currentYM();
+  const cf = getCashflows(); const d = cf[ym] || {};
+  const fields = ['otherIncome','rent','labor','util','comm','ins','loan','material','ads','supplies','misc','prevBalance'];
+  const ids = ['cf-other-income','cf-rent','cf-labor','cf-util','cf-comm','cf-ins','cf-loan','cf-material','cf-ads','cf-supplies','cf-misc','cf-prev-balance'];
+  fields.forEach((f,i) => { const el=document.getElementById(ids[i]); if(el) el.value=d[f]||''; });
+  renderCFSummary();
+  renderCFForecast();
+}
+function saveCashflow() {
+  const ym = document.getElementById('cf-month').value || currentYM();
+  const fields = ['otherIncome','rent','labor','util','comm','ins','loan','material','ads','supplies','misc','prevBalance'];
+  const ids = ['cf-other-income','cf-rent','cf-labor','cf-util','cf-comm','cf-ins','cf-loan','cf-material','cf-ads','cf-supplies','cf-misc','cf-prev-balance'];
+  const obj = {}; fields.forEach((f,i) => { obj[f] = parseInt(document.getElementById(ids[i]).value)||0; });
+  const cf = getCashflows(); cf[ym] = obj; setCashflows(cf);
+  renderCFSummary(); renderCFForecast(); showToast('💾 資金繰りを保存しました');
+}
+function renderCFSummary() {
+  const ym = document.getElementById('cf-month').value || currentYM();
+  const cf = getCashflows(); const d = cf[ym];
+  const card = document.getElementById('cf-summary-card');
+  if (!d) { card.style.display='none'; return; }
+  const sales = getMonthReports(ym).reduce((a,r)=>a+r.sales,0);
+  const income = sales + (d.otherIncome||0);
+  const fixedExp = (d.rent||0)+(d.labor||0)+(d.util||0)+(d.comm||0)+(d.ins||0)+(d.loan||0);
+  const varExp = (d.material||0)+(d.ads||0)+(d.supplies||0)+(d.misc||0);
+  const totalExp = fixedExp + varExp;
+  const profit = income - totalExp;
+  const endBalance = (d.prevBalance||0) + profit;
+  const profitRate = income ? Math.round(profit/income*100) : 0;
+  card.style.display = 'block';
+  let alertHtml = '';
+  if (endBalance < 0) alertHtml = `<div class="alert alert-danger">🚨 月末残高がマイナスです！緊急の対応が必要です。</div>`;
+  else if (endBalance < 200000) alertHtml = `<div class="alert alert-warning">⚠️ 月末残高が少なくなっています。経費削減を検討してください。</div>`;
+  document.getElementById('cf-summary').innerHTML = alertHtml + `
+    <div class="table-wrap"><table>
+      <tr><td>💰 売上収入</td><td style="text-align:right;font-weight:700;">${fmt(sales)}</td></tr>
+      <tr><td>＋ その他収入</td><td style="text-align:right;">${fmt(d.otherIncome||0)}</td></tr>
+      <tr style="background:#FFF0F8;"><td><strong>📥 収入合計</strong></td><td style="text-align:right;font-weight:900;color:var(--pink);">${fmt(income)}</td></tr>
+      <tr><td>🔴 固定費合計</td><td style="text-align:right;">${fmt(fixedExp)}</td></tr>
+      <tr><td>🟡 変動費合計</td><td style="text-align:right;">${fmt(varExp)}</td></tr>
+      <tr style="background:#FFF0F8;"><td><strong>📤 支出合計</strong></td><td style="text-align:right;font-weight:900;color:var(--red);">${fmt(totalExp)}</td></tr>
+      <tr style="background:#E8F5E9;"><td><strong>💵 当月収支</strong></td><td style="text-align:right;font-weight:900;color:${profit>=0?'var(--green)':'var(--red)'};">${fmt(profit)}</td></tr>
+      <tr><td>利益率</td><td style="text-align:right;font-weight:700;">${profitRate}%</td></tr>
+      <tr style="border-top:2px solid var(--border);"><td><strong>🏦 月末残高（推定）</strong></td><td style="text-align:right;font-weight:900;font-size:18px;color:${endBalance>=0?'var(--blue)':'var(--red)'};">${fmt(endBalance)}</td></tr>
+    </table></div>`;
+}
+function renderCFForecast() {
+  const cf = getCashflows();
+  const tbody = document.getElementById('cf-forecast-body');
+  let rows = ''; let balance = 0;
+  for (let i = 0; i < 6; i++) {
+    const d = new Date(); d.setMonth(d.getMonth()+i);
+    const ym = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const label = `${d.getMonth()+1}月`;
+    const sales = getMonthReports(ym).reduce((a,r)=>a+r.sales,0);
+    const cfm = cf[ym] || {};
+    const exp = (cfm.rent||0)+(cfm.labor||0)+(cfm.util||0)+(cfm.comm||0)+(cfm.ins||0)+(cfm.loan||0)+(cfm.material||0)+(cfm.ads||0)+(cfm.supplies||0)+(cfm.misc||0);
+    if (i===0) balance = (cfm.prevBalance||0);
+    const profit = sales - exp; balance += profit;
+    rows += `<tr><td>${label}</td><td>${fmt(sales)}</td><td>${fmt(exp)}</td><td class="${profit>=0?'positive':'negative'}">${fmt(profit)}</td><td class="${balance>=0?'positive':'negative'}">${fmt(balance)}</td></tr>`;
+  }
+  tbody.innerHTML = rows;
+}
+
+// ===================================================
+// REPORTS
+// ===================================================
+function switchReport(type, btn) {
+  ['weekly','monthly','yearly'].forEach(t => { document.getElementById('report-'+t).style.display = t===type?'block':'none'; });
+  document.querySelectorAll('.report-tab').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
+}
+function renderWeeklyReport() {
+  const week = document.getElementById('r-week').value;
+  if (!week) { showToast('週を選択してください'); return; }
+  const [year, wn] = week.split('-W');
+  const jan4 = new Date(parseInt(year), 0, 4);
+  const start = new Date(jan4.getTime() + ((parseInt(wn)-1) - (jan4.getDay()||7)+1) * 86400000);
+  const end = new Date(start.getTime() + 6*86400000);
+  const data = getData().filter(r => { const d=new Date(r.date); return d>=start && d<=end; });
+  const sales = data.reduce((a,r)=>a+r.sales,0);
+  const customers = data.reduce((a,r)=>a+r.customers,0);
+  document.getElementById('weekly-result').innerHTML = `
+    <div class="card">
+      <div class="card-title">📊 週次集計（${start.toLocaleDateString('ja')} 〜 ${end.toLocaleDateString('ja')}）</div>
+      <div class="table-wrap"><table>
+        <tr><th>項目</th><th>値</th></tr>
+        <tr><td>売上合計</td><td><strong>${fmt(sales)}</strong></td></tr>
+        <tr><td>来客数</td><td>${customers}名</td></tr>
+        <tr><td>客単価（平均）</td><td>${customers?fmt(sales/customers):'-'}</td></tr>
+        <tr><td>日報件数</td><td>${data.length}件</td></tr>
+      </table></div>
+    </div>`;
+}
+let chartMonthlyReport = null;
+function renderMonthlyReport() {
+  const ym = document.getElementById('r-month').value;
+  if (!ym) { showToast('月を選択してください'); return; }
+  const data = getMonthReports(ym);
+  const sales = data.reduce((a,r)=>a+r.sales,0);
+  const customers = data.reduce((a,r)=>a+r.customers,0);
+  const unit = customers?Math.round(sales/customers):0;
+  const cf = getCashflows()[ym]||{};
+  const exp = (cf.rent||0)+(cf.labor||0)+(cf.util||0)+(cf.comm||0)+(cf.ins||0)+(cf.loan||0)+(cf.material||0)+(cf.ads||0)+(cf.supplies||0)+(cf.misc||0);
+  const profit = sales - exp;
+  const s = getSettings();
+  const staffA = data.filter(r=>r.staff===s.staffA); const staffB = data.filter(r=>r.staff===s.staffB);
+  const salesA = staffA.reduce((a,r)=>a+r.sales,0); const salesB = staffB.reduce((a,r)=>a+r.sales,0);
+  document.getElementById('monthly-result').innerHTML = `
+    <div class="card">
+      <div class="card-title">📊 月次集計 ${ym}</div>
+      <div class="table-wrap"><table>
+        <tr><th>項目</th><th>値</th></tr>
+        <tr><td>売上合計</td><td><strong style="color:var(--pink)">${fmt(sales)}</strong></td></tr>
+        <tr><td>来客数</td><td>${customers}名</td></tr>
+        <tr><td>客単価</td><td>${fmt(unit)}</td></tr>
+        <tr><td>支出合計</td><td>${fmt(exp)}</td></tr>
+        <tr><td>利益</td><td style="color:${profit>=0?'var(--green)':'var(--red)'};font-weight:700;">${fmt(profit)}</td></tr>
+        <tr><td>${s.staffA} 売上</td><td>${fmt(salesA)}</td></tr>
+        <tr><td>${s.staffB} 売上</td><td>${fmt(salesB)}</td></tr>
+      </table></div>
+      <div style="margin-top:12px;">
+        <button class="btn btn-gold btn-sm" onclick="exportMonthlyCSV('${ym}')">⬇️ 月次CSVダウンロード</button>
+      </div>
+    </div>`;
+}
+function exportMonthlyCSV(ym) {
+  const data = getMonthReports(ym).sort((a,b)=>a.date.localeCompare(b.date));
+  const header = ['日付','スタッフ','来客数','売上','カード','客単価'];
+  const rows = data.map(r=>[r.date,r.staff,r.customers,r.sales,r.card,r.customers?Math.round(r.sales/r.customers):0]);
+  const csv = '\uFEFF'+[header,...rows].map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv); a.download=`salon_${ym}.csv`; a.click();
+}
+let chartYearly = null;
+function renderYearlyReport() {
+  const year = document.getElementById('r-year').value;
+  if (!year) { showToast('年を選択してください'); return; }
+  const monthLabels=[]; const monthlySales=[]; const monthlyCustomers=[];
+  let totalSales=0, totalCustomers=0;
+  for(let m=1;m<=12;m++){
+    const ym=`${year}-${String(m).padStart(2,'0')}`;
+    const data=getMonthReports(ym);
+    const s=data.reduce((a,r)=>a+r.sales,0);
+    const c=data.reduce((a,r)=>a+r.customers,0);
+    monthLabels.push(m+'月'); monthlySales.push(s); monthlyCustomers.push(c);
+    totalSales+=s; totalCustomers+=c;
+  }
+  document.getElementById('yearly-result').innerHTML = `
+    <div class="card"><div class="card-title">📊 年次集計 ${year}年</div>
+      <div class="table-wrap"><table><tr><th>月</th><th>売上</th><th>来客数</th><th>客単価</th></tr>
+        ${monthLabels.map((m,i)=>`<tr><td>${m}</td><td>${fmt(monthlySales[i])}</td><td>${monthlyCustomers[i]}名</td><td>${monthlyCustomers[i]?fmt(monthlySales[i]/monthlyCustomers[i]):'-'}</td></tr>`).join('')}
+        <tr style="background:var(--pink-pale);font-weight:900;"><td>合計/平均</td><td>${fmt(totalSales)}</td><td>${totalCustomers}名</td><td>${totalCustomers?fmt(totalSales/totalCustomers):'-'}</td></tr>
+      </table></div>
+      <div class="chart-container" style="margin-top:16px;"><canvas id="chart-yearly-sales"></canvas></div>
+    </div>`;
+  setTimeout(()=>{
+    if(chartYearly) chartYearly.destroy();
+    chartYearly = new Chart(document.getElementById('chart-yearly-sales'),{type:'bar',data:{labels:monthLabels,datasets:[{label:'月別売上',data:monthlySales,backgroundColor:'rgba(233,30,140,0.7)',borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{ticks:{callback:v=>'¥'+(v/10000).toFixed(0)+'万'}}}}});
+  },100);
+}
+
+// ===================================================
+// SIMULATION
+// ===================================================
+let chartSim = null;
+function loadSimSettings() {
+  const cf = getCashflows();
+  const ym = currentYM();
+  const cfm = cf[ym]||{};
+  const fixedCost = (cfm.rent||0)+(cfm.labor||0)+(cfm.util||0)+(cfm.comm||0)+(cfm.ins||0)+(cfm.loan||0);
+  if (fixedCost>0) document.getElementById('sim-fixed-cost').value = fixedCost;
+  const data = getMonthReports(ym);
+  const customers = data.reduce((a,r)=>a+r.customers,0);
+  const sales = data.reduce((a,r)=>a+r.sales,0);
+  if (customers>0) { document.getElementById('sim-customers').value=customers; document.getElementById('sim-unit-price').value=Math.round(sales/customers); }
+}
+function runSimulation() {
+  const customers = parseInt(document.getElementById('sim-customers').value)||80;
+  const unitPrice = parseInt(document.getElementById('sim-unit-price').value)||5000;
+  const fixedCost = parseInt(document.getElementById('sim-fixed-cost').value)||400000;
+  const varRate = (parseInt(document.getElementById('sim-var-rate').value)||15)/100;
+  const uplift = parseInt(document.getElementById('sim-slider').value)||0;
+  const targetUnit = unitPrice + uplift;
+  document.getElementById('sim-target-label').textContent = uplift>0?`+¥${fmtNum(uplift)}`:'現在と同じ';
+
+  const curMonthlySales = customers * unitPrice;
+  const newMonthlySales = customers * targetUnit;
+  const monthlyIncrease = newMonthlySales - curMonthlySales;
+  const yearlyIncrease = monthlyIncrease * 12;
+
+  const curMonthlyProfit = curMonthlySales*(1-varRate) - fixedCost;
+  const newMonthlyProfit = newMonthlySales*(1-varRate) - fixedCost;
+  const profitIncrease = newMonthlyProfit - curMonthlyProfit;
+  const curProfitRate = curMonthlySales>0?Math.round(curMonthlyProfit/curMonthlySales*100):0;
+  const newProfitRate = newMonthlySales>0?Math.round(newMonthlyProfit/newMonthlySales*100):0;
+
+  document.getElementById('sim-result').innerHTML = uplift===0 ? `
+    <div class="label" style="font-size:16px;">📊 現在の状況</div>
+    <div class="big-num" style="margin:8px 0;">${fmt(curMonthlySales)}</div>
+    <div class="label">月間売上（推定）</div>
+    <div style="margin-top:12px;font-size:14px;">年間売上: <strong>${fmt(curMonthlySales*12)}</strong> / 利益率: <strong>${curProfitRate}%</strong></div>
+  ` : `
+    <div class="label" style="font-size:16px;">✨ 客単価 <strong>+¥${fmtNum(uplift)}</strong> にした場合</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
+      <div><div class="label">月間増収</div><div class="big-num">+${fmt(monthlyIncrease)}</div></div>
+      <div><div class="label">年間増収</div><div class="big-num">+${fmt(yearlyIncrease)}</div></div>
+    </div>
+    <div style="margin-top:12px;background:rgba(255,255,255,0.2);border-radius:10px;padding:10px;font-size:13px;">
+      利益率 ${curProfitRate}% → <strong>${newProfitRate}%</strong>（+${newProfitRate-curProfitRate}pt）<br>
+      月間利益増加: +${fmt(profitIncrease)}
+    </div>`;
+
+  // Chart
+  const labels=[]; const curData=[]; const newData=[];
+  for(let u=0;u<=5000;u+=500){
+    labels.push(u===0?'現在':`+¥${u}`);
+    const cs=(customers*(unitPrice+u))*(1-varRate)-fixedCost;
+    const ns=(customers*(unitPrice+u))*(1-varRate)-fixedCost;
+    curData.push(Math.round(cs)); newData.push(Math.round(ns));
+  }
+  const simData=[...Array(11).keys()].map(i=>{const u=i*500;return Math.round((customers*(unitPrice+u))*(1-varRate)-fixedCost);});
+  if(chartSim) chartSim.destroy();
+  chartSim = new Chart(document.getElementById('chart-sim'),{
+    type:'line',
+    data:{labels,datasets:[{label:'月間利益',data:simData,borderColor:'#E91E8C',backgroundColor:'rgba(233,30,140,0.1)',fill:true,tension:0.4,pointRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,scales:{y:{ticks:{callback:v=>'¥'+(v/10000).toFixed(1)+'万'}}},plugins:{legend:{position:'top'}}}
+  });
+
+  // BEP
+  const bep = fixedCost / (1-varRate);
+  const bepCustomers = targetUnit>0?Math.ceil(bep/targetUnit):0;
+  const curBepCustomers = unitPrice>0?Math.ceil(bep/unitPrice):0;
+  document.getElementById('bep-analysis').innerHTML = `
+    <div class="table-wrap"><table>
+      <tr><th>指標</th><th>現在</th><th>目標単価</th></tr>
+      <tr><td>客単価</td><td>${fmt(unitPrice)}</td><td>${fmt(targetUnit)}</td></tr>
+      <tr><td>損益分岐点（売上）</td><td colspan="2" style="text-align:center;">${fmt(bep)}</td></tr>
+      <tr><td>損益分岐点（客数）</td><td>${curBepCustomers}名/月</td><td><strong style="color:var(--pink)">${bepCustomers}名/月</strong></td></tr>
+      <tr><td>現在の余裕（客数）</td><td>${customers-curBepCustomers}名</td><td><strong style="color:var(--green)">${customers-bepCustomers}名</strong></td></tr>
+    </table></div>
+    <div class="insight-box" style="margin-top:12px;">
+      <div class="insight-icon">💡</div>
+      <div class="insight-text">
+        ${uplift>0?`客単価を <strong>${fmt(targetUnit)}</strong> にすることで、損益分岐点の客数が <strong>${curBepCustomers}名 → ${bepCustomers}名</strong> に下がります。同じ客数でより多くの利益が残ります。`:`現在の損益分岐点は月間 <strong>${curBepCustomers}名</strong>の来客が必要です。`}
+      </div>
+    </div>`;
+}
+
+// ===================================================
+// STAFF
+// ===================================================
+let chartStaff = null;
+function loadStaffTargets() {
+  const s = getSettings();
+  document.getElementById('target-a').value = s.targetA||300000;
+  document.getElementById('target-b').value = s.targetB||300000;
+}
+function saveStaffTargets() {
+  const s = getSettings();
+  s.targetA = parseInt(document.getElementById('target-a').value)||300000;
+  s.targetB = parseInt(document.getElementById('target-b').value)||300000;
+  setSettings(s); showToast('目標を保存しました');
+}
+function renderStaff() {
+  const ym = document.getElementById('s-month').value || currentYM();
+  const data = getMonthReports(ym);
+  const s = getSettings();
+  const staffNames = [s.staffA, s.staffB];
+  const cards = staffNames.map((name,idx) => {
+    const sr = data.filter(r=>r.staff===name);
+    const sales = sr.reduce((a,r)=>a+r.sales,0);
+    const customers = sr.reduce((a,r)=>a+r.customers,0);
+    const unit = customers?Math.round(sales/customers):0;
+    const target = idx===0?(s.targetA||300000):(s.targetB||300000);
+    const pct = Math.min(100,Math.round(sales/target*100));
+    return `<div class="staff-card">
+      <div class="staff-name">👤 ${name}</div>
+      <div class="table-wrap"><table>
+        <tr><td>売上</td><td style="font-weight:700;color:var(--pink);">${fmt(sales)}</td></tr>
+        <tr><td>来客数</td><td>${customers}名</td></tr>
+        <tr><td>客単価</td><td>${fmt(unit)}</td></tr>
+        <tr><td>担当日数</td><td>${sr.length}日</td></tr>
+      </table></div>
+      <div style="margin-top:10px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span>目標達成率 (目標: ${fmt(target)})</span><span>${pct}%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${idx===0?'linear-gradient(90deg,#E91E8C,#FF6BBF)':'linear-gradient(90deg,#FFD700,#FFC107)'};"></div></div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('staff-cards').innerHTML = cards.join('');
+
+  // Chart
+  const months=[]; const dataA=[]; const dataB=[];
+  for(let i=5;i>=0;i--){
+    const d=new Date(); d.setMonth(d.getMonth()-i);
+    const mym=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    months.push(`${d.getMonth()+1}月`);
+    const mr=getMonthReports(mym);
+    dataA.push(mr.filter(r=>r.staff===s.staffA).reduce((a,r)=>a+r.sales,0));
+    dataB.push(mr.filter(r=>r.staff===s.staffB).reduce((a,r)=>a+r.sales,0));
+  }
+  if(chartStaff) chartStaff.destroy();
+  chartStaff = new Chart(document.getElementById('chart-staff'),{
+    type:'bar',
+    data:{labels:months,datasets:[
+      {label:s.staffA,data:dataA,backgroundColor:'rgba(233,30,140,0.7)',borderRadius:6},
+      {label:s.staffB,data:dataB,backgroundColor:'rgba(255,215,0,0.8)',borderRadius:6}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,scales:{y:{ticks:{callback:v=>'¥'+(v/10000).toFixed(0)+'万'}}}}
+  });
+}
+
+// ===================================================
+// SETTINGS
+// ===================================================
+function loadSettingsForm() {
+  const s = getSettings();
+  document.getElementById('set-salon-name').value = s.salonName||'';
+  document.getElementById('set-target-sales').value = s.targetSales||800000;
+  document.getElementById('set-staff-a').value = s.staffA||'スタッフA';
+  document.getElementById('set-staff-b').value = s.staffB||'スタッフB';
+}
+function saveSettings() {
+  const s = getSettings();
+  s.salonName = document.getElementById('set-salon-name').value;
+  s.targetSales = parseInt(document.getElementById('set-target-sales').value)||800000;
+  s.staffA = document.getElementById('set-staff-a').value||'スタッフA';
+  s.staffB = document.getElementById('set-staff-b').value||'スタッフB';
+  setSettings(s);
+  document.querySelector('.app-header h1').textContent = '💄 ' + (s.salonName||'Beauty Salon Manager');
+  showToast('✅ 設定を保存しました');
+}
+function exportAllData() {
+  const allData = { reports: getData(), cashflows: getCashflows(), settings: getSettings(), exportDate: today() };
+  const json = JSON.stringify(allData, null, 2);
+  const a = document.createElement('a'); a.href = 'data:application/json;charset=utf-8,'+encodeURIComponent(json);
+  a.download = `salon_backup_${today()}.json`; a.click(); showToast('データをエクスポートしました');
+}
+function clearAllData() {
+  if (!confirm('⚠️ 全データを削除します。この操作は取り消せません。本当によろしいですか？')) return;
+  ['salon_reports','salon_cashflows','salon_settings','salon_initialized'].forEach(k=>localStorage.removeItem(k));
+  showToast('データを初期化しました');
+  setTimeout(()=>location.reload(), 1000);
+}
+
+// ===================================================
+// INIT
+// ===================================================
+document.addEventListener('DOMContentLoaded', () => {
+  initSampleData();
+  // Set defaults
+  document.getElementById('d-date').value = today();
+  const cf_month = document.getElementById('cf-month'); if(cf_month) cf_month.value = currentYM();
+  const r_month = document.getElementById('r-month'); if(r_month) r_month.value = currentYM();
+  const r_year = document.getElementById('r-year'); if(r_year) r_year.value = new Date().getFullYear();
+  const s_month = document.getElementById('s-month'); if(s_month) s_month.value = currentYM();
+  // Load settings into header
+  const s = getSettings();
+  document.querySelector('.app-header h1').textContent = '💄 ' + (s.salonName||'Beauty Salon Manager');
+  // Staff toggle labels
+  const staffBtns = document.querySelectorAll('#d-staff-toggle .toggle-btn');
+  if(staffBtns[0]) staffBtns[0].textContent = s.staffA||'スタッフA';
+  if(staffBtns[1]) staffBtns[1].textContent = s.staffB||'スタッフB';
+  selectedStaff = s.staffA||'スタッフA';
+  document.getElementById('d-staff').value = selectedStaff;
+  // Render dashboard
+  renderDashboard();
+  // Init log month filter
+  const months = [...new Set(getData().map(r=>r.date.slice(0,7)))].sort().reverse();
+  const sel = document.getElementById('log-month-filter');
+  sel.innerHTML = '<option value="">すべての月</option>' + months.map(m=>`<option value="${m}">${m}</option>`).join('');
+});
+</script>
+</body>
+</html>
